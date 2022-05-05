@@ -17,21 +17,22 @@ const getUsers = catchAsync(async (req, res, next) => {
         query = query.sort(req.query.sort);
     }
 
+    const numOfUsers = await User.countDocuments();
+
     const page = +req.query.page || 1;
-    const limit = +req.query.limit || 20;
+    const limit = +req.query.limit || numOfUsers;
     const skip = (page - 1) * limit;
 
     query = query.skip(skip).limit(limit)
 
     const users = await query;
-    const numOfUsers = await User.countDocuments();
 
     return res.status(200).json({
         status: 'success',
         results: users.length,
         next: skip >= numOfUsers
             ? null
-            :`${req.path}?search=${req.query.search || ''}&sort=${req.query.sort || ''}&limit=${req.query.limit}&page=${+req.query.page + 1}`,
+            : `${req.path}?search=${req.query.search || ''}&sort=${req.query.sort || ''}&limit=${req.query.limit || ''}&page=${+req.query.page + 1 || 1}`,
         data: users
     })
 });
